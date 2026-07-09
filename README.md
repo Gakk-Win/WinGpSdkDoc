@@ -7,8 +7,7 @@ This repository contains the documentation for the **Win GP SDK**
 ## Project Structure
 
 - `docs/`: Source Markdown files for the documentation.
-  - `index.md`: Landing page and quick start.
-  - `implementation.md`: The full partner integration & implementation guide.
+  - `index.md`: The full partner integration guide.
   - `changelog.md`: SDK version history.
 - `mkdocs.yml`: Configuration file for the MkDocs site.
 - `site/`: The generated static website (after running `mkdocs build`).

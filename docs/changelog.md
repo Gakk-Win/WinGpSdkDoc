@@ -1,81 +1,52 @@
 # Changelog
 
-All notable changes to the **Win GP SDK** (`com.gakk.winsdk:mygp`) are documented
-here. The SDK version is defined in `gradle/libs.versions.toml` under the `winSdk`
-key. This project follows [Semantic Versioning](https://semver.org/) and
-[Conventional Commits](https://www.conventionalcommits.org/).
+All notable changes to the **Win GP SDK** (`com.gakk.winsdk:mygp`) are documented in
+this file. The SDK follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-## 1.4.1 — current
+### 1.4.1 — current
 
-- **fix:** Handle WebView safe-area insets correctly across Android versions
-  (`WinInterceptor` now reports `Build.VERSION.RELEASE`).
-- **build:** Add the Foojay toolchain resolver plugin for reproducible JDK
-  provisioning.
-- **chore:** Refresh the demo JWT in `TestTokenProvider`; bump SDK version to
-  1.4.1.
+- **Fixed:** WebView safe-area insets are now handled correctly across Android versions.
+- Toolchain and demo-app maintenance.
 
-## 1.4.0
+### 1.4.0
 
-- **feat:** Widget-less entry point — `WinSdk.openPlatform(context, targetUrl?)`
-  launches the full-screen `GameActivity` directly from any Activity/Fragment,
-  with events delivered on `WinSdk.events` (filtered by the reserved
-  `DIRECT_LAUNCH_KEY`). `WinSdk.init(tokenProvider)` registers the provider
-  globally.
-- **feat:** Bengali & English language support — new `language: WinLanguage`
-  parameter on `WinQuizWidget`; drives local strings, dynamic API title fields
-  (`featureTitle` vs. `featureTitleEn`), digit script in result counts, and the
-  `lang` SSO query parameter for WebView games. Runtime switching supported.
-- **feat:** Internal SDK analytics reporting pipeline.
-- **feat:** Game-quit tracking — `CloseIconClicked` refactored to carry
-  `featureId`, `correctAnswers`, and `totalQuestions` when the user quits mid-game.
-- **feat:** Added a click event to the "Others" button.
-- **fix:** Stabilize widget content height; simplify `GamesView` layout.
-- **fix:** Keep the TicTacToe board square and centered on large/foldable screens.
-- **fix:** `WinGameIcon` uses `TextAutoSize` to resolve word-breaking in the
-  more-games bottom sheet.
-- **refactor:** Changed the game progress bar to horizontal in `GameActivity`.
-- **chore:** Point the analytics endpoint at the default base URL; remove the
-  unused `Language` enum.
+- **New — widget-less launcher:** `WinSdk.openPlatform(context, targetUrl?)` opens the
+  full-screen Win platform directly from any Activity/Fragment. Register your provider
+  once with `WinSdk.init(tokenProvider)` and observe results on `WinSdk.events`.
+- **New — language support:** the `language: WinLanguage` parameter on `WinQuizWidget`
+  switches the UI between **Bengali** and **English** (strings, API title fields, digit
+  script, and WebView language), with runtime switching supported.
+- **New — richer game-quit tracking:** `CloseIconClicked` now carries `featureId`,
+  `correctAnswers`, and `totalQuestions` when the user quits mid-game.
+- **New:** click event added to the "Others" button.
+- **Fixed:** more stable widget content height and simplified games layout.
+- **Fixed:** the TicTacToe board stays square and centered on large/foldable screens.
+- **Fixed:** word-breaking in the more-games bottom sheet.
 
-## 1.3.3
+### 1.3.3
 
-- **feat:** Customizable `shape` support on `WinQuizWidget` (defaults to
+- **New:** customizable `shape` on `WinQuizWidget` (defaults to
   `RoundedCornerShape(12.dp)`).
-- **feat:** Handle landscape orientation for custom views in `GameActivity` (via a
-  `setLandscape` JS interface).
-- **refactor:** Removed the legacy `WinEventCallback` in favor of the
-  `WinSdkController.events` flow; updated `ResultView` styles and adopted
-  `WinTextStyles` across UI components.
-- **docs:** Comprehensive README integration guide and tech-stack details.
-- **fix:** Updated the "No internet" text.
+- **New:** landscape orientation support for custom games.
+- **Changed:** events are delivered through `WinSdkController.events`; the legacy event
+  callback was removed.
+- **Fixed:** updated the "No internet" copy.
 
-## 1.3.2
+### 1.3.2
 
-- **fix:** Disabled zoom in the WebView.
-- **chore:** Version bump to 1.3.2.
+- **Fixed:** disabled pinch-zoom in the WebView.
 
-## 1.3.1
+### 1.3.1
 
-- **refactor:** Added fade and scale animations to `WinQuizView` state transitions.
-- **chore:** Version bump to 1.3.1.
+- **Changed:** added fade and scale animations to widget state transitions.
 
-## 1.3.0
+### 1.3.0
 
-- **feat:** Version bump to 1.3.0 (integration-branch release rollup).
+- Integration-branch release rollup.
 
-## Earlier releases (1.1.0 – 1.2.6)
+### 1.1.0 – 1.2.6
 
-Incremental releases prior to 1.3.0 covered ongoing UI refinements, ProGuard rule
-updates (1.1.2), dependency bumps (including Lottie 6.6.6), and routine version
-bumps. See `git log` for the full commit-level detail.
-
----
-
-### Release process (maintainers)
-
-1. Update the `winSdk` version in `gradle/libs.versions.toml`.
-2. Add a new section here summarizing the changes since the last release.
-3. Publish with `./gradlew publish` (requires `WIN_JFROG_USERNAME` /
-   `WIN_JFROG_PASSWORD`).
+- Incremental releases covering ongoing UI refinements, ProGuard rule updates, and
+  dependency bumps (including Lottie 6.6.6).
