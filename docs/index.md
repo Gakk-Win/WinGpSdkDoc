@@ -1,6 +1,6 @@
 # Win GP SDK — Partner Integration Guide
 
-**SDK version:** `1.4.1`  
+**SDK version:** `1.5.0`  
 **Min Android SDK:** 21 (Android 5.0)  
 **Kotlin:** 2.1+  
 **Compose BOM:** 2024.09.00+
@@ -17,7 +17,7 @@ networking — you only supply an **auth token** and, optionally, listen for **e
 
 1. [Prerequisites](#1-prerequisites)
 2. [Add the Dependency](#2-add-the-dependency)
-3. [Internet Permission](#3-internet-permission)
+3. [Permissions & File Uploads](#3-permissions-file-uploads)
 4. [Authentication — `TokenProvider`](#4-authentication-tokenprovider)
 5. [Integration Path A — The Compose Widget](#5-integration-path-a-the-compose-widget)
 6. [Integration Path B — Widget-less Launcher](#6-integration-path-b-widget-less-launcher)
@@ -93,7 +93,7 @@ In your **app module** `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.gakk.winsdk:mygp:1.4.1")
+    implementation("com.gakk.winsdk:mygp:1.5.0")
     // See the Changelog for the latest version.
 }
 ```
@@ -102,13 +102,74 @@ Sync Gradle — the SDK is now available.
 
 ---
 
-## 3. Internet Permission
+## 3. Permissions & File Uploads
 
-The SDK makes network calls, but it **declares the `INTERNET` permission in its own
-manifest**, which the manifest merger folds into your app automatically.
+**The SDK declares only `INTERNET`, and asks for no runtime permission at any point.**
 
-> **No action required** — you do not need to add anything to your
-> `AndroidManifest.xml`.
+The `INTERNET` permission is declared in the SDK's own manifest, which the manifest
+merger folds into your app automatically.
+
+> **No action required** — you do not need to add any permission to your
+> `AndroidManifest.xml`, and you never have to run a permission request on the SDK's
+> behalf.
+
+### 3a. File uploads in web games
+
+Web games that use `<input type="file">` are served by AndroidX activity-result
+contracts, none of which requires a grant: the pickers return only the items the user
+actually selected, and a camera capture is written into the SDK's own cache directory
+rather than into shared storage.
+
+**How an input is routed** — the input's own attributes decide, with no prompt of the
+SDK's own in between:
+
+| The input | Opens | Contract |
+|-----------|-------|----------|
+| `capture`, with an `accept` that allows images (or no `accept`) | Camera | `TakePicture` |
+| `accept` listing only image and video types | [Photo picker][photo-picker] | `PickVisualMedia` |
+| Everything else, including an input with no `accept` | Document picker | `GetContent` |
+
+`multiple` switches the two picker rows to `PickMultipleVisualMedia` /
+`GetMultipleContents`.
+
+`accept` is read as MIME types, with `.png`-style extensions resolved for you and casing
+ignored. A single concrete type (`image/gif`, `application/pdf`) becomes the picker's
+filter as-is; several image and video types narrow the photo picker to images, video, or
+both; several types of any other kind open the document picker on `*/*`.
+
+> Recording video is not offered — a game asking for `video/*` with `capture` picks an
+> existing file.
+
+### 3b. What the SDK adds to your manifest
+
+One `<provider>`, so a camera app has somewhere to write. It is merged in from the AAR —
+**you do not declare it yourself**:
+
+```xml
+<provider
+    android:name="com.gakk.winsdk.ui.WinSdkFileProvider"
+    android:authorities="${applicationId}.winsdk.fileprovider"
+    android:exported="false"
+    android:grantUriPermissions="true">
+    <meta-data
+        android:name="android.support.FILE_PROVIDER_PATHS"
+        android:resource="@xml/win_sdk_file_paths"/>
+</provider>
+```
+
+The authority is derived from your `applicationId`, so it cannot collide with another
+app. It is a `FileProvider` subclass rather than `androidx.core.content.FileProvider`
+itself, so it will not collide with a provider your own app declares. Captured photos go
+to `cacheDir/win_sdk_captures` and are cleared on the next capture an hour or more later.
+
+### 3c. If your app declares `android.permission.CAMERA`
+
+Android then requires that grant before *any* camera intent will start, including the
+SDK's — this follows from the merged manifest, not from which API the SDK uses. The SDK
+never requests the permission. If it is declared but not granted, a `capture` input falls
+back to a picker.
+
+[photo-picker]: https://developer.android.com/training/data-storage/shared/photo-picker
 
 ---
 
@@ -489,6 +550,18 @@ MSISDN from the token payload.
 **Q: Do I need to add the `INTERNET` permission?**  
 A: No. The SDK declares it in its own manifest and the manifest merger adds it to your
 app automatically.
+
+**Q: Does the SDK ask for camera or storage permissions?**  
+A: No. File uploads from web games go through AndroidX activity-result contracts, which
+need no runtime grant — the pickers return only what the user selected, and a camera
+capture lands in the SDK's own cache directory. See
+[§3](#3-permissions-file-uploads).
+
+**Q: A `capture` input opens a picker instead of the camera. Why?**  
+A: Most often because your own app declares `android.permission.CAMERA` without holding
+the grant — Android then blocks every camera intent, the SDK's included. It can also
+happen when no camera app is installed. Either way the SDK falls back to a picker rather
+than leaving the input stuck.
 
 **Q: Do I need to add any ProGuard/R8 rules?**  
 A: No. The SDK bundles its own `consumer-rules.pro`, which is merged into your build
